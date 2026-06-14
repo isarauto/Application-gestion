@@ -1,0 +1,10 @@
+{
+  "appId": "com.gestion.location",
+  "appName": "Gestion Location",
+  "webDir": "www",
+  "plugins": {
+    "CapacitorSQLite": {
+      "androidIsEncryption": false
+    }
+  }
+}

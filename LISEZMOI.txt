@@ -1,0 +1,38 @@
+VERSION "A PLAT" POUR UPLOAD GITHUB FACILE
+===========================================
+
+Tous les fichiers sont a la racine, AUCUN dossier a glisser.
+Le robot GitHub reconstruit la structure tout seul pendant la compilation.
+
+ETAPE 1 — Televerser les fichiers
+---------------------------------
+Sur ton depot GitHub : Add file -> Upload files
+Glisse ces 6 fichiers (pas ce LISEZMOI, pas build-apk.yml) :
+  - index.html
+  - app.css
+  - app.js
+  - db.js
+  - package.json
+  - capacitor.config.json
+Puis : Commit changes.
+
+(Si app.css / app.js / capacitor.config.json / package.json existent deja
+dans le depot, pas grave : ils seront remplaces.)
+
+ETAPE 2 — Creer le workflow
+---------------------------
+Onglet Actions -> New workflow -> "set up a workflow yourself"
+  - Renomme main.yml en : build-apk.yml
+  - Efface tout et colle le contenu du fichier build-apk.yml
+    (ouvre-le avec le Bloc-notes, Ctrl+A, Ctrl+C, colle sur GitHub)
+  - Commit changes
+
+ETAPE 3 — Recuperer l'APK
+-------------------------
+Onglet Actions -> attends que "Build APK" passe au vert (5 a 8 min)
+-> clique dessus -> section "Artifacts" en bas
+-> telecharge "gestion-location-apk" (zip contenant app-debug.apk)
+-> envoie app-debug.apk au client (WhatsApp...) -> il l'installe.
+
+NOTE : s'il reste un vieux fichier "download" ou "README.md" dans le depot,
+ca ne gene pas la compilation. Tu peux les supprimer ou les laisser.
