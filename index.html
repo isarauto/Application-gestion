@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>نظام محاسبة سيارات الإيجار — v3.0</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="vendor/xlsx.full.min.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="vendor/jspdf.plugin.autotable.min.js"></script>
+  <script src="vendor/cairo-font.js"></script>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-wrap"><img id="company-logo" alt="Logo"></div>
+    <div class="title-wrap">
+      <h1>نظام محاسبة سيارات الإيجار</h1>
+      <p>v3.0 — تطبيق يعمل بدون إنترنت مع قاعدة بيانات <span id="db-badge" class="badge"></span></p>
+    </div>
+  </div>
+
+  <div class="tabs-container">
+    <button class="tab-btn active" data-tab="dashboard">لوحة القيادة</button>
+    <button class="tab-btn" data-tab="rentals">الإيجارات</button>
+    <button class="tab-btn" data-tab="clients">الزبائن</button>
+    <button class="tab-btn" data-tab="cars">السيارات</button>
+    <button class="tab-btn" data-tab="expenses">المصاريف</button>
+    <button class="tab-btn" data-tab="invoices">الفواتير</button>
+    <button class="tab-btn" data-tab="reports">التقارير</button>
+    <button class="tab-btn" data-tab="settings">الإعدادات</button>
+  </div>
+
+  <!-- لوحة القيادة -->
+  <div id="dashboard" class="tab-content active">
+    <div class="container">
+      <div class="card">
+        <h2>ملخص سريع</h2>
+        <div class="stats-grid">
+          <div class="stat"><div class="hint">الإيرادات</div><div id="total-income" class="stat-val success">0.00 د.م</div></div>
+          <div class="stat"><div class="hint">المصاريف</div><div id="total-expenses" class="stat-val danger">0.00 د.م</div></div>
+          <div class="stat"><div class="hint">صافي الربح</div><div id="net-profit" class="stat-val info">0.00 د.م</div></div>
+          <div class="stat"><div class="hint">السيارات</div><div><span id="available-cars">0</span> متاحة من <span id="total-cars">0</span></div></div>
+          <div class="stat"><div class="hint">الزبائن</div><div id="total-clients" class="stat-val info">0</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الإيجارات -->
+  <div id="rentals" class="tab-content">
+    <div class="container">
+      <div class="card">
+        <h2 id="rental-form-title">إضافة عقد إيجار</h2>
+        <div class="form-section">
+          <div class="form-group"><label>الزبون (اختر من القائمة أو أدخل الاسم يدويًا)</label><select id="rental-client"><option value="">— زبون غير مسجّل —</option></select></div>
+          <div class="form-group"><label>اسم الزبون</label><input id="rental-customer" type="text" placeholder="الاسم"></div>
+          <div class="form-group"><label>اختر السيارة</label><select id="rental-car-type"></select></div>
+          <div class="form-group"><label>رقم السيارة</label><select id="rental-car-number"></select></div>
+          <div class="form-group"><label>تاريخ وساعة البدء (اختياري)</label><div class="inline"><input id="rental-start-date" type="date"><input id="rental-start-time" type="time"></div></div>
+          <div class="form-group"><label>تاريخ وساعة الانتهاء (اختياري)</label><div class="inline"><input id="rental-end-date" type="date"><input id="rental-end-time" type="time"></div></div>
+          <div class="form-group"><label>عدد الأيام (يدوي)</label><input id="rental-days" type="number" min="1" value="1"></div>
+          <div class="form-group"><label>السعر اليومي (يدوي)</label><input id="rental-price" type="number" min="0" step="0.01" value="200"></div>
+          <div class="form-group"><label>المبلغ الإجمالي</label><div id="total-amount-display" class="calculated-amount">0.00 د.م</div></div>
+          <div class="form-group"><label>طريقة الدفع</label><select id="rental-payment-method"></select></div>
+          <div class="inline">
+            <button id="add-rental-btn" class="btn btn-success" type="button">إضافة العقد</button>
+            <button id="cancel-rental-edit" class="btn btn-light" type="button" style="display:none">إلغاء التعديل</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>قائمة العقود</h2>
+        <div class="inline" style="margin-bottom:8px">
+          <button id="export-rentals-excel" class="btn" type="button">تصدير إلى Excel</button>
+          <button id="export-rentals-csv" class="btn" type="button">تصدير إلى CSV</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>الزبون</th><th>السيارة</th><th>رقم</th><th>من</th><th>إلى</th><th>المدة</th><th>الصافي</th><th>الدفع</th><th>إجراءات</th></tr></thead>
+            <tbody id="rentals-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الزبائن -->
+  <div id="clients" class="tab-content">
+    <div class="container">
+      <div class="card">
+        <h2 id="client-form-title">إضافة زبون</h2>
+        <div class="form-section">
+          <div class="form-group"><label>الاسم الكامل</label><input id="client-name" type="text" placeholder="الاسم الكامل"></div>
+          <div class="form-group"><label>رقم الهاتف</label><input id="client-phone" type="tel" placeholder="06XXXXXXXX"></div>
+          <div class="form-group"><label>العنوان</label><input id="client-address" type="text" placeholder="المدينة، الحي..."></div>
+          <div class="form-group"><label>البريد الإلكتروني</label><input id="client-email" type="email" placeholder="name@example.com"></div>
+          <div class="form-group"><label>تاريخ الازدياد</label><input id="client-birthdate" type="date"></div>
+          <div class="form-group"><label>الجنسية</label><input id="client-nationality" type="text" placeholder="مغربية"></div>
+          <div class="form-group"><label>ملاحظات</label><textarea id="client-notes" rows="2" placeholder="ملاحظات حول الزبون"></textarea></div>
+          <div class="form-group"><label class="inline" style="cursor:pointer"><input id="client-blacklist" type="checkbox" style="width:auto;margin-left:6px"> قائمة سوداء (زبون غير مرغوب فيه)</label></div>
+          <div class="inline">
+            <button id="add-client-btn" class="btn btn-success" type="button">إضافة الزبون</button>
+            <button id="cancel-client-edit" class="btn btn-light" type="button" style="display:none">إلغاء التعديل</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>قائمة الزبائن</h2>
+        <div class="inline" style="margin-bottom:8px">
+          <input id="client-search" type="text" placeholder="بحث بالاسم أو الهاتف..." style="flex:1;min-width:160px;padding:9px 10px;border:1px solid #ddd;border-radius:6px">
+          <button id="export-clients-excel" class="btn" type="button">تصدير إلى Excel</button>
+          <button id="export-clients-csv" class="btn" type="button">تصدير إلى CSV</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>الاسم</th><th>الهاتف</th><th>الجنسية</th><th>عدد العقود</th><th>إجمالي الإنفاق</th><th>آخر إيجار</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody id="clients-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- السيارات -->
+  <div id="cars" class="tab-content">
+    <div class="container">
+      <div class="card">
+        <h2 id="car-form-title">إضافة سيارة</h2>
+        <div class="form-section">
+          <div class="form-group"><label>الموديل</label><input id="car-model" type="text" placeholder="DACIA LOGAN"></div>
+          <div class="form-group"><label>رقم السيارة</label><input id="car-number" type="text" placeholder="35110-D-40"></div>
+          <div class="form-group"><label>السنة</label><input id="car-year" type="number" min="2000" value="2023"></div>
+          <div class="form-group"><label>اللون</label><input id="car-color" type="text" placeholder="أبيض"></div>
+          <div class="form-group"><label>السعر اليومي</label><input id="car-price" type="number" min="0" step="0.01" value="200"></div>
+          <div class="form-group"><label>الحالة</label><select id="car-status"><option>متاحة</option><option>مؤجرة</option><option>في الصيانة</option></select></div>
+          <div class="inline">
+            <button id="add-car-btn" class="btn btn-success" type="button">إضافة سيارة</button>
+            <button id="cancel-car-edit" class="btn btn-light" type="button" style="display:none">إلغاء التعديل</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>القائمة</h2>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>الموديل</th><th>الرقم</th><th>السعر اليومي</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody id="cars-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- المصاريف -->
+  <div id="expenses" class="tab-content">
+    <div class="container">
+      <div class="card">
+        <h2 id="expense-form-title">إضافة مصروف</h2>
+        <div class="form-section">
+          <div class="form-group"><label>النوع</label><select id="expense-type"><option>وقود</option><option>صيانة</option><option>تأمين</option><option>أخرى</option></select></div>
+          <div class="form-group"><label>الوصف</label><input id="expense-description" type="text"></div>
+          <div class="form-group"><label>المبلغ</label><input id="expense-amount" type="number" min="0" step="0.01" value="0"></div>
+          <div class="form-group"><label>التاريخ</label><input id="expense-date" type="date"></div>
+          <div class="form-group"><label>السيارة</label><select id="expense-car"></select></div>
+          <div class="form-group"><label>الحالة</label><select id="expense-status"><option>مدفوع</option><option>غير مدفوع</option><option>مؤجل</option></select></div>
+          <div class="inline">
+            <button id="add-expense-btn" class="btn btn-success" type="button">إضافة</button>
+            <button id="cancel-expense-edit" class="btn btn-light" type="button" style="display:none">إلغاء التعديل</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>آخر المصاريف</h2>
+        <div class="inline" style="margin-bottom:8px">
+          <button id="export-expenses-excel" class="btn" type="button">تصدير إلى Excel</button>
+          <button id="export-expenses-csv" class="btn" type="button">تصدير إلى CSV</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>النوع</th><th>السيارة</th><th>المبلغ</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
+            <tbody id="expenses-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الفواتير -->
+  <div id="invoices" class="tab-content">
+    <div class="container">
+      <div class="card">
+        <h2>إنشاء فاتورة</h2>
+        <div class="form-section">
+          <div class="form-group">
+            <label>وضع الاختيار:</label>
+            <div class="inline">
+              <label class="inline"><input type="radio" name="inv-mode" value="from_rental" checked> من عقد إيجار</label>
+              <label class="inline"><input type="radio" name="inv-mode" value="manual"> عميل/تفاصيل يدوية</label>
+            </div>
+          </div>
+
+          <div id="inv-from-rental">
+            <div class="form-group">
+              <label>عقد الإيجار</label>
+              <div class="inline">
+                <select id="invoice-rental" style="min-width:260px"><option value="">-- اختر عقد إيجار --</option></select>
+                <button id="refresh-invoice-rentals" class="btn btn-light" type="button">تحديث القائمة</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="inv-manual" style="display:none">
+            <div class="form-group"><label>اسم العميل</label><input id="inv-cust-name" type="text" placeholder="الاسم"></div>
+            <div class="form-group"><label>السيارة</label><input id="inv-car-model" type="text" placeholder="مثال: DACIA LOGAN"></div>
+            <div class="form-group"><label>رقم السيارة</label><input id="inv-car-number" type="text" placeholder="35110-D-40"></div>
+            <div class="form-group"><label>المدة (أيام)</label><input id="inv-days" type="number" min="1" value="1"></div>
+            <div class="form-group"><label>السعر اليومي</label><input id="inv-price-per-day" type="number" min="0" step="0.01" value="200"></div>
+          </div>
+
+          <div class="form-group">
+            <label>رقم الفاتورة</label>
+            <div class="inline">
+              <input id="invoice-number" type="text" placeholder="INV-YYYYMMDD-0001" style="min-width:220px">
+              <button id="gen-invoice-number" class="btn btn-light" type="button">توليد رقم تلقائي</button>
+            </div>
+          </div>
+
+          <div class="form-group"><label>تاريخ الفاتورة</label><input id="invoice-date" type="date"></div>
+          <div class="form-group"><label>ملاحظات</label><textarea id="invoice-notes" rows="2" placeholder="ملاحظات مختصرة"></textarea></div>
+
+          <div class="inline">
+            <button id="preview-invoice-btn" class="btn btn-success" type="button">معاينة</button>
+            <button id="download-invoice-html" class="btn" type="button">تحميل HTML</button>
+          </div>
+
+          <div id="invoice-preview" style="display:none;margin-top:12px;border:1px solid #ddd;border-radius:8px;background:#f8f9fa;padding:12px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>الفواتير المُنشأة</h2>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>رقم</th><th>العميل</th><th>السيارة</th><th>التاريخ</th><th>الإجمالي</th><th>إجراءات</th></tr></thead>
+            <tbody id="invoices-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- التقارير -->
+  <div id="reports" class="tab-content">
+    <div class="container">
+      <div class="card">
+        <h2>تقرير الإيرادات</h2>
+        <div class="form-section">
+          <div class="form-group"><label>الفترة</label>
+            <select id="income-period">
+              <option value="week">هذا الأسبوع</option>
+              <option value="month">هذا الشهر</option>
+              <option value="6months">آخر 6 أشهر</option>
+              <option value="year">هذه السنة</option>
+              <option value="custom">مخصص</option>
+            </select>
+          </div>
+          <div id="income-custom" style="display:none;gap:8px" class="form-section">
+            <div class="form-group"><label>من</label><input id="income-start" type="date"></div>
+            <div class="form-group"><label>إلى</label><input id="income-end" type="date"></div>
+          </div>
+          <div class="inline"><button id="gen-income-report" class="btn" type="button">إنشاء تقرير الإيرادات</button></div>
+        </div>
+        <div id="income-report-result" class="report-box" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <h2>تقرير المصاريف</h2>
+        <div class="form-section">
+          <div class="form-group"><label>الفترة</label>
+            <select id="expense-period">
+              <option value="week">هذا الأسبوع</option>
+              <option value="month">هذا الشهر</option>
+              <option value="6months">آخر 6 أشهر</option>
+              <option value="year">هذه السنة</option>
+              <option value="custom">مخصص</option>
+            </select>
+          </div>
+          <div id="expense-custom" style="display:none;gap:8px" class="form-section">
+            <div class="form-group"><label>من</label><input id="expense-start" type="date"></div>
+            <div class="form-group"><label>إلى</label><input id="expense-end" type="date"></div>
+          </div>
+          <div class="inline"><button id="gen-expense-report" class="btn" type="button">إنشاء تقرير المصاريف</button></div>
+        </div>
+        <div id="expense-report-result" class="report-box" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الإعدادات -->
+  <div id="settings" class="tab-content">
+    <div class="container">
+      <div class="card">
+        <h2>إعدادات عامة</h2>
+        <div class="form-section">
+          <div class="form-group"><label>اسم الشركة</label><input id="company-name" type="text" placeholder="اسم الشركة"></div>
+          <div class="form-group"><label>العملة</label><select id="currency"><option value="د.م">درهم مغربي (د.م)</option><option value="$">$</option><option value="€">€</option></select></div>
+          <div class="form-group"><label>نسبة الضريبة (مثال: 0.20 = 20%)</label><input id="tax-rate-setting" type="number" min="0" max="1" step="0.01" value="0.2"></div>
+          <button id="save-general-settings" class="btn" type="button">حفظ</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>شعار الشركة</h2>
+        <div class="form-section">
+          <div class="form-group"><label>ارفع الشعار (PNG/JPG) - أقصى 2MB</label><input id="logo-input" type="file" accept="image/*"></div>
+          <div class="form-group"><label>معاينة</label><div class="logo-wrap" style="width:260px;height:110px;background:#fff"><img id="logo-preview" alt="preview"></div></div>
+          <div class="inline">
+            <button id="save-logo" class="btn" type="button">حفظ الشعار</button>
+            <button id="remove-logo" class="btn btn-danger" type="button">إزالة الشعار</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>نسخة احتياطية</h2>
+        <div class="form-section">
+          <p class="hint">احفظ نسخة من كل البيانات في ملف، أو استرجعها من ملف سابق.</p>
+          <div class="inline">
+            <button id="backup-download" class="btn btn-success" type="button">تحميل نسخة احتياطية</button>
+            <button id="backup-restore-btn" class="btn btn-danger" type="button">استرجاع من ملف</button>
+            <input id="backup-restore-input" type="file" accept=".json,application/json" style="display:none">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>مزامنة Google Sheets (اختياري - يتطلب إنترنت)</h2>
+        <div class="form-section">
+          <div class="form-group">
+            <label>رابط تطبيق Apps Script (Web App)</label>
+            <input id="gas-endpoint" type="url" placeholder="https://script.google.com/macros/s/XXXX/exec">
+          </div>
+          <div class="inline">
+            <button id="sync-push" class="btn" type="button">إرسال البيانات إلى Google Sheets</button>
+            <button id="sync-pull" class="btn btn-light" type="button">سحب البيانات من Google Sheets</button>
+          </div>
+          <p class="hint">أدخل رابط Web App ثم استخدم الأزرار للمزامنة.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
