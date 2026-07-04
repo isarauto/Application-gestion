@@ -1,0 +1,80 @@
+/* Police Cairo locale (téléchargée par scripts/download-vendor.sh) — fallback système si absente */
+@font-face{font-family:'Cairo';font-weight:400;font-style:normal;font-display:swap;src:url('../fonts/cairo-regular.woff2') format('woff2')}
+@font-face{font-family:'Cairo';font-weight:700;font-style:normal;font-display:swap;src:url('../fonts/cairo-bold.woff2') format('woff2')}
+
+:root{--primary:#2c3e50;--secondary:#4a6491;--success:#27ae60;--danger:#e74c3c;--warning:#f39c12;--info:#3498db;--light:#f8f9fa;--dark:#343a40}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo','Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+body{background:#f5f7fa;color:#333;line-height:1.6;padding:12px;padding-top:calc(12px + env(safe-area-inset-top));overflow-x:hidden}
+
+.header{display:flex;align-items:center;gap:15px;padding:15px 20px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border-radius:12px;margin-bottom:20px;box-shadow:0 6px 15px rgba(0,0,0,.08)}
+.logo-wrap{flex:0 0 auto;width:120px;height:60px;background:rgba(255,255,255,.06);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.logo-wrap img{max-width:100%;max-height:100%;object-fit:contain}
+.title-wrap{flex:1}
+.title-wrap h1{font-size:1.3rem;margin-bottom:4px}
+.title-wrap p{opacity:.9;font-size:.85rem}
+.badge{background:rgba(255,255,255,.18);border-radius:10px;padding:1px 8px;font-size:.75rem}
+
+.tabs-container{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px;background:#fff;padding:12px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,.05)}
+.tab-btn{padding:10px 14px;background:#f1f1f1;border:none;border-radius:6px;cursor:pointer;font-size:.95rem;font-weight:700;color:var(--dark)}
+.tab-btn.active{background:var(--secondary);color:#fff}
+.tab-content{display:none;background:#fff;border-radius:10px;padding:16px;box-shadow:0 6px 12px rgba(0,0,0,.06);margin-bottom:20px}
+.tab-content.active{display:block}
+
+.container{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px}
+.card{flex:1;min-width:300px;background:#fff;border-radius:10px;padding:14px;box-shadow:0 4px 8px rgba(0,0,0,.06)}
+.card h2{color:var(--primary);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--secondary);font-size:1.1rem}
+
+.form-section{display:flex;flex-direction:column;gap:10px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-weight:700}
+.form-group input,.form-group select,.form-group textarea{padding:11px 10px;border:1px solid #ddd;border-radius:6px;font-size:1rem}
+.inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.btn{padding:11px 14px;background:var(--secondary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-size:.95rem}
+.btn-success{background:var(--success)}
+.btn-danger{background:var(--danger)}
+.btn-light{background:#6c757d}
+.btn-sm{padding:5px 9px;font-size:.8rem;border-radius:5px}
+
+.table-container{overflow-x:auto;background:#fff;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,.06);-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse}
+.table-container table{min-width:700px}
+#invoice-preview{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#invoice-preview img{max-width:100%;height:auto}
+thead{background:var(--secondary);color:#fff}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:center}
+
+.calculated-amount{background:#f8f9fa;border:1px solid #ddd;padding:10px;border-radius:6px;font-weight:800;color:var(--success);text-align:center}
+.report-box{background:#fff;border-radius:10px;padding:12px;box-shadow:0 4px 8px rgba(0,0,0,.06)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:#f8f9fa;padding:10px;border-radius:8px}
+.stat-val{font-weight:800}
+.stat-val.success{color:var(--success)}
+.stat-val.danger{color:var(--danger)}
+.stat-val.info{color:var(--info)}
+.stat-val.warning{color:var(--warning)}
+
+.chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chart{height:250px;display:flex;align-items:flex-end;gap:6px;padding:20px 2px 0;min-width:min-content}
+.bar-col{flex:1 1 0;min-width:26px;max-width:56px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.bar{width:100%;background:var(--secondary);border-radius:4px 4px 0 0;position:relative}
+.bar.income{background:var(--success)}
+.bar.expense{background:var(--danger)}
+.bar-label{margin-top:4px;text-align:center;color:#666;font-size:.68rem;white-space:nowrap}
+.bar-value{position:absolute;top:-18px;right:0;left:0;text-align:center;font-size:.62rem;font-weight:700;color:#444;white-space:nowrap}
+.hint{color:#666;font-size:.9rem}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.78rem;font-weight:700}
+.tag-paid{background:#eafaf1;color:var(--success)}
+.tag-unpaid{background:#fdecea;color:var(--danger)}
+.tag-active{background:#eef2f7;color:var(--secondary)}
+.tag-blacklist{background:#fdecea;color:var(--danger)}
+
+@media (max-width:480px){
+  .header{padding:10px 12px;gap:10px}
+  .logo-wrap{width:80px;height:46px}
+  .title-wrap h1{font-size:1.05rem}
+  .tab-btn{flex:1 1 auto;padding:9px 8px;font-size:.85rem}
+  .card{min-width:100%}
+}
